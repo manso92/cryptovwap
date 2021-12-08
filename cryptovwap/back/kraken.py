@@ -12,7 +12,7 @@ class Kraken(Exchange):
         self.api = krakenex.API()
         self.k = KrakenAPI(self.api)
 
-    def get_data(self, symbol, since=None, to=None, extra=[]):
+    def get_data(self, symbol, since=None, to=None):
 
         now = dt_datetime_unix(dt.now())
         if since == None and to == None:
@@ -27,13 +27,10 @@ class Kraken(Exchange):
                 self._get_recent_data(symbol, since, to)
             )
 
-        for x in extra:
-            data = x(data)
-
         return data
 
     def _recent_data_df_standar(self, df):
-        return df[["price", "volume", "time"]]
+        return df[["price", "volume", "time"]].sort_index()
 
     def _get_recent_data(self, symbol, since=None, to=None):
         if symbol not in self.get_asset_pairs_symbols():
@@ -51,7 +48,7 @@ class Kraken(Exchange):
                 return pd.concat([data, mdata])
 
     def _check_stop(self, last, to):
-        return (dt_unix_datetime(to) - self._last_datetime(last)).total_seconds() < self.MAX_SECONDS
+        return (to - self._last_datetime(last)).total_seconds() < self.MAX_SECONDS
 
     def _last_unix(self, last):
         return last / 1000000000

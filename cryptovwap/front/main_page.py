@@ -1,7 +1,7 @@
 from .head import *
 from .menu import *
-import plotly.graph_objs as go
 
+from ..back.helpers import *
 import dash
 from dash import dcc
 from dash import html
@@ -49,12 +49,20 @@ app.layout = html.Div(
 @app.callback(
     Output("grafica-precio", "figure"),
     [
-        Input("filtro-crypto", "value")
+        Input("filtro-crypto", "value"),
+        Input('filtro-date', "date")
+
     ],
 )
-def update_charts(region):
+def update_charts(crypto, fecha):
+
+    start = dt_str_datetime(fecha)
+    startp1 = start + td(days=1)
+    end = startp1 if startp1 < dt.today() else dt.today()
+
     k = Kraken()
-    data = k.get_data(region, extra=[k.vwap])
+    data = k.get_data(crypto, start, end).reset_index()
+    vwap = k.vwap(data)
 
     price_chart_figure = {
         "data": [
@@ -65,8 +73,8 @@ def update_charts(region):
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
             },
             {
-                "x": data["dtime"].apply(str),
-                "y": data["vwap"],
+                "x": vwap["dtime"].apply(str),
+                "y": vwap["vwap"],
                 "type": "lines",
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
             },
@@ -79,7 +87,7 @@ def update_charts(region):
             },
             "xaxis": {"fixedrange": True},
             "yaxis": {"tickprefix": "$", "fixedrange": True},
-            "colorway": ["#17B897", "#17B8AA"],
+            "colorway": ["#17B897", "#CCCCCC"],
         },
     }
 

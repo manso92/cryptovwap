@@ -41,9 +41,9 @@ def menu(k):
                     dcc.DatePickerSingle(
                         id='filtro-date',
                         min_date_allowed=date(2020, 1, 1),
-                        max_date_allowed=date.todat(),
-                        initial_visible_month=date.todat(),
-                        date=date.todat()
+                        max_date_allowed=date.today(),
+                        initial_visible_month=date.today(),
+                        date=date.today()
                     ),
                 ],
             ),

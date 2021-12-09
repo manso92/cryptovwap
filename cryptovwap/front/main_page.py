@@ -1,12 +1,16 @@
 from .head import *
 from .menu import *
-import plotly.graph_objs as go
 
+from ..back.helpers import *
 import dash
 from dash import dcc
 from dash import html
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State
 from ..back import Kraken
+
+from datetime import timedelta as td
+
+import pandas as pd
 
 
 external_stylesheets = [
@@ -18,6 +22,11 @@ external_stylesheets = [
     {
         "href": "https://cdnjs.cloudflare.com/ajax"
                 "/libs/font-awesome/6.0.0-beta3/css/all.min.css",
+        "rel": "stylesheet",
+    },
+    {
+        "href": "https://cdn.jsdelivr.net/npm/"
+                "bootstrap@5.1.3/dist/css/bootstrap.min.css",
         "rel": "stylesheet",
     }
 ]
@@ -42,31 +51,64 @@ app.layout = html.Div(
             ],
             className="wrapper",
         ),
+        dcc.Store(id='hdata-value'),
+        dcc.Store(id='queries-value')
     ]
 )
 
 
+def generate_interval(fecha):
+    start = dt_str_datetime(fecha)
+    startp1 = start + td(days=1)
+    end = startp1 if startp1 < dt.today() else dt.today()
+    return dt_datetime_unix(start), dt_datetime_unix(end)
+
+
+def hist_data(df, symbol, fecha):
+    return df[(df["time"].between(fecha, fecha + 24*3600)) & (df["symbol"] == symbol)].sort_values(["time"])
+
+
 @app.callback(
     Output("grafica-precio", "figure"),
+    Output('hdata-value', 'data'),
+    Output('queries-value', 'data'),
     [
-        Input("filtro-crypto", "value")
+        Input("filtro-crypto", "value"),
+        Input('filtro-date', "date"),
+        Input('filtro-vwap', "value"),
+        State('hdata-value', 'data'),
+        State('queries-value', 'data')
+
     ],
 )
-def update_charts(region):
+def update_charts(crypto, fecha, fvwap, hdata, queries):
+    hdata = None if hdata is None else pd.read_json(hdata, orient='split')
+    queries = [] if queries is None else queries
+
+    start, end = generate_interval(fecha)
     k = Kraken()
-    data = k.get_data(region, extra=[k.vwap])
+
+    if ([crypto, fecha]) in queries:
+        print("Ya tenemos data")
+        data = hist_data(hdata, crypto, start)
+        vwap = k.vwap(data, fvwap)
+    else:
+        data = k.get_data(crypto, start, end)
+        vwap = k.vwap(data, fvwap)
+        hdata = pd.concat([data, hdata])
+        queries.append([crypto, fecha])
 
     price_chart_figure = {
         "data": [
             {
-                "x": data["dtime"].apply(str),
+                "x": data["time"].apply(dt_unix_datetime).apply(str),
                 "y": data["price"],
                 "type": "lines",
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
             },
             {
-                "x": data["dtime"].apply(str),
-                "y": data["vwap"],
+                "x": vwap["time"].apply(dt_unix_datetime).apply(str),
+                "y": vwap["vwap"],
                 "type": "lines",
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
             },
@@ -79,8 +121,8 @@ def update_charts(region):
             },
             "xaxis": {"fixedrange": True},
             "yaxis": {"tickprefix": "$", "fixedrange": True},
-            "colorway": ["#17B897", "#17B8AA"],
+            "colorway": ["#17B897", "#CCCCCC"],
         },
     }
 
-    return price_chart_figure
+    return price_chart_figure, hdata.to_json(date_format='iso', orient='split'), queries

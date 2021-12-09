@@ -5,7 +5,7 @@ from abc import ABCMeta
 class Exchange(metaclass=ABCMeta):
 
     @abstractmethod
-    def get_data(self, symbol, since=None, to=None, extra=[]):
+    def get_data(self, symbol, since=None, to=None):
         pass
 
     @abstractmethod

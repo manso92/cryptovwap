@@ -1,26 +1,22 @@
-from .head import *
-from .menu import *
-
-import dash
 from dash import dcc
 from dash import html
-import pandas as pd
-import numpy as np
-from dash.dependencies import Output, Input
-from ..back import Kraken
 from datetime import date
+from ..back.helpers import FREQ_VWAP
 
-def dropdown(id, values):
+
+def dropdown(title, id, values, default=None):
+    if default is None:
+        default = list(values)[0]
     return html.Div(
             children=[
-                html.Div(children="Region", className="menu-title"),
+                html.Div(children=title, className="menu-title"),
                 dcc.Dropdown(
                     id=id,
                     options=[
                         {"label": x, "value": x}
                         for x in values
                     ],
-                    value=values[0],
+                    value=default,
                     clearable=False,
                     className="dropdown",
                 ),
@@ -31,10 +27,7 @@ def dropdown(id, values):
 def menu(k):
     return html.Div(
         children=[
-            dropdown("filtro-crypto", k.get_asset_pairs_symbols()),
-
-
-
+            dropdown("Crypto", "filtro-crypto", k.get_asset_pairs_symbols(), "XBTUSDT"),
             html.Div(
                 children=[
                     html.Div(children="Type", className="menu-title"),
@@ -43,10 +36,13 @@ def menu(k):
                         min_date_allowed=date(2020, 1, 1),
                         max_date_allowed=date.today(),
                         initial_visible_month=date.today(),
-                        date=date.today()
+                        date=date.today(),
+                        display_format='YYYY-MM-DD'
                     ),
                 ],
             ),
+            dropdown("VWAP interval", "filtro-vwap", FREQ_VWAP.keys()),
+
         ],
         className="menu",
     )

@@ -1,7 +1,7 @@
 from dash import dcc
 from dash import html
 from datetime import date
-from ..back.helpers import INTERVALS_VWAP
+from ..back.helpers import FREQ_VWAP
 
 
 def dropdown(title, id, values, default=None):
@@ -41,7 +41,8 @@ def menu(k):
                     ),
                 ],
             ),
-            dropdown("VWAP interval", "filtro-vwap", INTERVALS_VWAP.keys()),
+            dropdown("VWAP interval", "filtro-vwap", FREQ_VWAP.keys()),
+
         ],
         className="menu",
     )

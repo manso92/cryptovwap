@@ -43,18 +43,6 @@ class Kraken(Exchange):
         return last / 1000000000
 
 
-    @staticmethod
-    def vwap(df, fvwap):
-        filtro = FREQ_VWAP[fvwap]
-
-        df = df.copy()
-        df["vwap"] = df["price"] * df["volume"]
-        df["time"] = df["time"].apply(lambda x: generate_filter(x, filtro))
-        df = df.groupby('time').agg({'price': 'mean', 'volume': 'sum', 'vwap': 'sum'}).reset_index()
-        df["vwap"] = df["vwap"] / df["volume"]
-
-        return df
-
     def get_asset_pairs(self):
         assets = self.k.get_tradable_asset_pairs()
         return list(assets["wsname"].apply(lambda x: tuple(x.split("/"))))

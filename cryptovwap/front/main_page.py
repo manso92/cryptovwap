@@ -81,22 +81,22 @@ def hist_data(df, symbol, fecha):
 
     ],
 )
-def update_charts(crypto, fecha, fvwap, hdata, queries):
+def update_charts(symbol, fecha, fvwap, hdata, queries):
     hdata = None if hdata is None else pd.read_json(hdata, orient='split')
     queries = [] if queries is None else queries
 
     start, end = generate_interval(fecha)
     k = Kraken()
 
-    if ([crypto, fecha]) in queries:
+    if ([symbol, fecha]) in queries:
         print("Ya tenemos data")
-        data = hist_data(hdata, crypto, start)
+        data = hist_data(hdata, symbol, start)
         vwap = k.vwap(data, fvwap)
     else:
-        data = k.get_data(crypto, start, end)
+        data = k.get_data(symbol, start, end)
         vwap = k.vwap(data, fvwap)
         hdata = pd.concat([data, hdata])
-        queries.append([crypto, fecha])
+        queries.append([symbol, fecha])
 
     price_chart_figure = {
         "data": [
@@ -105,12 +105,14 @@ def update_charts(crypto, fecha, fvwap, hdata, queries):
                 "y": data["price"],
                 "type": "lines",
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
+                'name': symbol
             },
             {
                 "x": vwap["time"].apply(dt_unix_datetime).apply(str),
                 "y": vwap["vwap"],
                 "type": "lines",
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
+                'name': "VWAP"
             },
         ],
         "layout": {

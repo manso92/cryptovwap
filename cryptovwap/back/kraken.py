@@ -14,23 +14,12 @@ class Kraken(Exchange):
 
     def get_data(self, symbol, since=None, to=None):
 
-        now = dt_datetime_unix(dt.now())
-        if since == None and to == None:
-            data = self._recent_data_df_standar(
-                self._get_recent_data(symbol)
-            )
-        else:
-            to = now if to == None else to
-            since = since if to == None else dt_datetime_unix(since)
+        to = dt_datetime_unix(dt.now()) if to == None else to
 
-            data = self._recent_data_df_standar(
-                self._get_recent_data(symbol, since, to)
-            )
+        data = self._get_recent_data(symbol, since, to).sort_values("time")
+        data["symbol"] = symbol
+        return data.reset_index()[["symbol", "price", "volume", "time"]]
 
-        return data
-
-    def _recent_data_df_standar(self, df):
-        return df[["price", "volume", "time"]].sort_index()
 
     def _get_recent_data(self, symbol, since=None, to=None):
         if symbol not in self.get_asset_pairs_symbols():
@@ -48,27 +37,27 @@ class Kraken(Exchange):
                 return pd.concat([data, mdata])
 
     def _check_stop(self, last, to):
-        return (to - self._last_datetime(last)).total_seconds() < self.MAX_SECONDS
+        return (to - self._last_unix(last)) < self.MAX_SECONDS
 
     def _last_unix(self, last):
         return last / 1000000000
 
-    def _last_datetime(self, last):
-        return dt_unix_datetime(self._last_unix(last))
 
     @staticmethod
-    def vwap(df):
-        df = df.copy().reset_index()
+    def vwap(df, fvwap):
+        filtro = FREQ_VWAP[fvwap]
+
+        df = df.copy()
         df["vwap"] = df["price"] * df["volume"]
-        df["dtime"] = df["dtime"].apply(lambda x: str(x)[:16])
-        df = df.groupby('dtime').agg({'price': 'mean', 'volume': 'sum', 'time': 'min', 'vwap': 'sum'}).reset_index()
+        df["time"] = df["time"].apply(lambda x: generate_filter(x, filtro))
+        df = df.groupby('time').agg({'price': 'mean', 'volume': 'sum', 'vwap': 'sum'}).reset_index()
         df["vwap"] = df["vwap"] / df["volume"]
 
         return df
 
     def get_asset_pairs(self):
         assets = self.k.get_tradable_asset_pairs()
-        return list(assets["wsname"].apply(lambda x: tuple(x.split("/")))) + [("BTC", "EUR")]
+        return list(assets["wsname"].apply(lambda x: tuple(x.split("/"))))
 
     def get_asset_pairs_symbols(self):
         return ["".join(x) for x in self.get_asset_pairs()]

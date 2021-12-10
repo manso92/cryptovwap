@@ -24,3 +24,6 @@ FREQ_VWAP = {
     "30 min": 60*30,
     "1 h": 60*60
 }
+
+VWAP_DEFAULT = "5 min"
+CANDLES_DEFAULT = "30 min"

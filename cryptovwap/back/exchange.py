@@ -27,8 +27,7 @@ class Exchange(metaclass=ABCMeta):
     def get_asset_pairs_symbols(self):
         pass
 
-    @staticmethod
-    def vwap(df, fvwap):
+    def vwap(self, df, fvwap):
         filtro = FREQ_VWAP[fvwap]
 
         df = df.copy()
@@ -42,4 +41,18 @@ class Exchange(metaclass=ABCMeta):
              'vwap': 'sum'}).reset_index()
         df["vwap"] = df["vwap"] / df["volume"]
 
+        return df
+
+    def ohcl(self, df, freq):
+        df = df.copy()
+        filtro = FREQ_VWAP[freq]
+
+        df = df.copy()
+        df["time"] = df["time"].apply(
+            lambda x: generate_filter(x, filtro)
+        )
+        df["time"] = df["time"].map(lambda x: x+(filtro/2))
+        df = df.groupby('time').agg(
+            {'price': ['first', 'min', 'max', 'last']}).reset_index()
+        df.columns = ['time', 'open', 'low', 'high', 'close']
         return df

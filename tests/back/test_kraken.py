@@ -5,7 +5,7 @@ import pandas as pd
 
 def test_get_data(mocker):
     mocker.patch('pykrakenapi.KrakenAPI.get_recent_trades',
-                  return_value=data.get("public_trades"))
+                 return_value=data.get("public_trades"))
     mocker.patch('cryptovwap.back.kraken.Kraken.get_asset_pairs_symbols',
                  return_value=['XBTUSDT'])
 

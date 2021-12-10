@@ -7,6 +7,7 @@ import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Output, Input, State
+import plotly.graph_objects as go
 
 from datetime import timedelta as td
 from datetime import datetime as dt
@@ -33,7 +34,6 @@ external_stylesheets = [
 
 app = dash.Dash("cryptovwap", external_stylesheets=external_stylesheets)
 app.title = "Crypto VWAP"
-server = app.server
 k = Bitvavo()
 
 app.layout = html.Div(
@@ -78,12 +78,13 @@ def hist_data(df, symbol, fecha):
         Input("filtro-crypto", "value"),
         Input('filtro-date', "date"),
         Input('filtro-vwap', "value"),
+        Input('filtro-candle', "value"),
         State('hdata-value', 'data'),
         State('queries-value', 'data')
 
     ],
 )
-def update_charts(exchange, symbol, fecha, fvwap, hdata, queries):
+def update_charts(exchange, symbol, fecha, fvwap, fcandle, hdata, queries):
     hdata = None if hdata is None else pd.read_json(hdata, orient='split')
     queries = [] if queries is None else queries
 
@@ -97,12 +98,13 @@ def update_charts(exchange, symbol, fecha, fvwap, hdata, queries):
     if ([symbol, fecha]) in queries:
         print("Ya tenemos data")
         data = hist_data(hdata, symbol, start)
-        vwap = x.vwap(data, fvwap)
     else:
         data = x.get_data(symbol, start, end)
-        vwap = x.vwap(data, fvwap)
         hdata = pd.concat([data, hdata])
         queries.append([symbol, fecha])
+
+    vwap = x.vwap(data, fvwap)
+    ohcl = x.ohcl(data, fcandle)
 
     price_chart_figure = {
         "data": [
@@ -120,13 +122,20 @@ def update_charts(exchange, symbol, fecha, fvwap, hdata, queries):
                 "hovertemplate": "$%{y:.2f}<extra></extra>",
                 'name': "VWAP"
             },
+            go.Candlestick(x=ohcl['time'].map(dt_unix_datetime),
+                           open=ohcl['open'],
+                           high=ohcl['high'],
+                           low=ohcl['low'],
+                           close=ohcl['close'],
+                           name="Candles")
         ],
         "layout": {
             "title": {
-                "text": "Average Price of Avocados",
+                "text": symbol,
                 "x": 0.05,
                 "xanchor": "left",
             },
+            "height": 600,
             "xaxis": {"fixedrange": True},
             "yaxis": {"tickprefix": "$", "fixedrange": True},
             "colorway": ["#17B897", "#CCCCCC"],

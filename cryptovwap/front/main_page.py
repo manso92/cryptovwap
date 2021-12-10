@@ -69,6 +69,15 @@ def hist_data(df, symbol, fecha):
               (df["symbol"] == symbol)].sort_values(["time"])
 
 
+def coin(coin):
+    if "USD" in coin:
+        return "$"
+    elif "EUR" in coin:
+        return "€"
+    else:
+        return "₿"
+
+
 @app.callback(
     Output("grafica-precio", "figure"),
     Output('hdata-value', 'data'),
@@ -137,8 +146,11 @@ def update_charts(exchange, symbol, fecha, fvwap, fcandle, hdata, queries):
             },
             "height": 600,
             "xaxis": {"fixedrange": True},
-            "yaxis": {"tickprefix": "$", "fixedrange": True},
-            "colorway": ["#17B897", "#CCCCCC"],
+            "yaxis": {
+                "tickprefix": coin(symbol),
+                "fixedrange": True
+            },
+            "colorway": ["#4260f5", "#eda03b"],
         },
     }
 

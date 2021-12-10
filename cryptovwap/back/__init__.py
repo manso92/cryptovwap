@@ -1,4 +1,3 @@
-from .exchange import Exchange
 from .kraken import Kraken
 from .bitvavo import Bitvavo
 
@@ -10,5 +9,5 @@ def generate_echanges(exchanges_list):
         exchanges[ex.exchange_name] = ex
     return exchanges
 
-exchanges = generate_echanges([Kraken, Bitvavo])
 
+exchanges = generate_echanges([Kraken, Bitvavo])

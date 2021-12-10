@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from abc import ABCMeta
-from .helpers import *
+from .helpers import generate_filter, FREQ_VWAP
 
 
 class Exchange(metaclass=ABCMeta):
@@ -33,8 +33,13 @@ class Exchange(metaclass=ABCMeta):
 
         df = df.copy()
         df["vwap"] = df["price"] * df["volume"]
-        df["time"] = df["time"].apply(lambda x: generate_filter(x, filtro))
-        df = df.groupby('time').agg({'price': 'mean', 'volume': 'sum', 'vwap': 'sum'}).reset_index()
+        df["time"] = df["time"].apply(
+            lambda x: generate_filter(x, filtro)
+        )
+        df = df.groupby('time').agg(
+            {'price': 'mean',
+             'volume': 'sum',
+             'vwap': 'sum'}).reset_index()
         df["vwap"] = df["vwap"] / df["volume"]
 
         return df

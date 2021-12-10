@@ -23,14 +23,19 @@ class Bitvavo(Exchange):
 
     def get_data(self, symbol, since=None, to=None):
         if since is None and to is None:
-            df = pd.DataFrame(self.bitvavo.publicTrades(symbol, {"limit": 1000}))
+            df = pd.DataFrame(
+                self.bitvavo.publicTrades(symbol, {"limit": 1000})
+            )
             df = self._prepare_df(symbol, df)
         else:
             minus = to
             dfs = []
             while minus > since:
+                minus = str(int(minus * 1000))
                 df = self._prepare_df(symbol, pd.DataFrame(
-                    self.bitvavo.publicTrades(symbol, {"limit": 1000, "end": str(int(minus * 1000))})))
+                    self.bitvavo.publicTrades(symbol,
+                                              {"limit": 1000,
+                                               "end": minus})))
                 minus = min(df["time"])
                 dfs.append(df)
             df = pd.concat(dfs)

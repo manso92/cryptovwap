@@ -1,4 +1,4 @@
-from .front.main_page import *
+from .front.main_page import app
 
 
 def main():

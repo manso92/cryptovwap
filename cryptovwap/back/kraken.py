@@ -1,9 +1,8 @@
-import time
+from .exchange import Exchange
+from .helpers import dt_datetime_unix, dt
 
-from . import Exchange
-import krakenex
 from pykrakenapi import KrakenAPI
-from .helpers import *
+import krakenex
 import pandas as pd
 import time
 
@@ -25,19 +24,18 @@ class Kraken(Exchange):
 
     def get_data(self, symbol, since=None, to=None):
 
-        to = dt_datetime_unix(dt.now()) if to == None else to
+        to = dt_datetime_unix(dt.now()) if to is None else to
 
         data = self._get_recent_data(symbol, since, to).sort_values("time")
         data["symbol"] = symbol
         return data.reset_index()[["symbol", "price", "volume", "time"]]
-
 
     def _get_recent_data(self, symbol, since=None, to=None):
         if symbol not in self.get_asset_pairs_symbols():
             print("Error obteniendo los datos, simbolo no reconocido")
             return None
         # Si no hay fecha de fin, devolvemos los últimos trades
-        if since == None and to == None:
+        if since is None and to is None:
             return self.k.get_recent_trades(symbol)[0]
         else:
             data, last = self.k.get_recent_trades(symbol, since=since)
@@ -53,7 +51,6 @@ class Kraken(Exchange):
 
     def _last_unix(self, last):
         return last / 1000000000
-
 
     def get_asset_pairs(self):
         assets = self.k.get_tradable_asset_pairs()

@@ -1,5 +1,5 @@
-from .head import *
-from .menu import *
+from .head import head
+from .menu import menu
 from ..back.helpers import dt_datetime_unix, dt_unix_datetime, dt_str_datetime
 from ..back import Kraken, Bitvavo
 

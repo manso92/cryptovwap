@@ -38,7 +38,7 @@ k = Bitvavo()
 
 app.layout = html.Div(
     children=[
-        head,
+        head(),
         menu(k),
         html.Div(
             children=[

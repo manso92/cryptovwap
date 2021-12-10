@@ -5,6 +5,16 @@ from .helpers import *
 
 class Exchange(metaclass=ABCMeta):
 
+    @property
+    @abstractmethod
+    def exchange_name(self):
+        pass
+
+    @property
+    @abstractmethod
+    def default_trade(self):
+        pass
+
     @abstractmethod
     def get_data(self, symbol, since=None, to=None):
         pass

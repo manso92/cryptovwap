@@ -1,12 +1,23 @@
+import time
+
 from . import Exchange
 import krakenex
 from pykrakenapi import KrakenAPI
 from .helpers import *
 import pandas as pd
+import time
 
 
 class Kraken(Exchange):
     MAX_SECONDS = 60
+
+    @property
+    def exchange_name(self):
+        return "Kraken"
+
+    @property
+    def default_trade(self):
+        return "XBTUSDT"
 
     def __init__(self):
         self.api = krakenex.API()
@@ -33,6 +44,7 @@ class Kraken(Exchange):
             if self._check_stop(last, to):
                 return data
             else:
+                time.sleep(5)
                 mdata = self._get_recent_data(symbol, since=last, to=to)
                 return pd.concat([data, mdata])
 

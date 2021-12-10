@@ -22,6 +22,10 @@ class Bitvavo(Exchange):
         })
 
     def get_data(self, symbol, since=None, to=None):
+        if symbol not in self.get_asset_pairs_symbols():
+            print("Error obteniendo los datos, simbolo no reconocido")
+            return None
+
         if since is None and to is None:
             df = pd.DataFrame(
                 self.bitvavo.publicTrades(symbol, {"limit": 1000})

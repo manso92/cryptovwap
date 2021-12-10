@@ -35,16 +35,13 @@ class Kraken(Exchange):
             print("Error obteniendo los datos, simbolo no reconocido")
             return None
         # Si no hay fecha de fin, devolvemos los últimos trades
-        if since is None and to is None:
-            return self.k.get_recent_trades(symbol)[0]
+        data, last = self.k.get_recent_trades(symbol, since=since)
+        if self._check_stop(last, to):
+            return data
         else:
-            data, last = self.k.get_recent_trades(symbol, since=since)
-            if self._check_stop(last, to):
-                return data
-            else:
-                time.sleep(5)
-                mdata = self._get_recent_data(symbol, since=last, to=to)
-                return pd.concat([data, mdata])
+            time.sleep(5)
+            mdata = self._get_recent_data(symbol, since=last, to=to)
+            return pd.concat([data, mdata])
 
     def _check_stop(self, last, to):
         return (to - self._last_unix(last)) < self.MAX_SECONDS

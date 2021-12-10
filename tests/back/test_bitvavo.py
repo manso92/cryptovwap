@@ -1,16 +1,20 @@
 from cryptovwap.back.bitvavo import Bitvavo
-from .test_bitvavo_data import data
+from .test_bitvavo_data import data, expected
+import pandas as pd
 
 
 def test_get_data(mocker):
-    mocker.patch('python_bitvavo_api.bitvavo.Bitvavo.markets',
-                 return_value=data.get("markets"))
+    mocker.patch('python_bitvavo_api.bitvavo.Bitvavo.publicTrades',
+                 return_value=data.get("public_trades"))
+    mocker.patch('cryptovwap.back.bitvavo.Bitvavo.get_asset_pairs_symbols',
+                 return_value=['ADA-EUR'])
 
     b = Bitvavo()
-    b.get_data('ADA-EUR')
-    assert (b.get_asset_pairs() ==
-            [('1INCH','EUR'), ('AAVE','EUR'), ('ADA','BTC'), ('ADA','EUR')])
-    assert True
+    x = b.get_data('ADA-EUR')
+    y = pd.read_json(expected.get("get_data"), orient='split')
+
+    assert (list(x) == list(y))
+    assert (list(x.columns) == list(y.columns))
 
 
 def test_get_asset_pairs(mocker):
@@ -19,7 +23,7 @@ def test_get_asset_pairs(mocker):
 
     b = Bitvavo()
     assert (b.get_asset_pairs() ==
-            [('1INCH','EUR'), ('AAVE','EUR'), ('ADA','BTC'), ('ADA','EUR')])
+            expected.get("get_asset_pairs"))
 
 
 def test_get_asset_pairs_symbols(mocker):
@@ -28,4 +32,4 @@ def test_get_asset_pairs_symbols(mocker):
 
     b = Bitvavo()
     assert (b.get_asset_pairs_symbols() ==
-            ['1INCH-EUR', 'AAVE-EUR', 'ADA-BTC', 'ADA-EUR'])
+            expected.get("get_asset_pairs_symbols"))

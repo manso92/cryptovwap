@@ -2,6 +2,7 @@ from dash import dcc
 from dash import html
 from datetime import date
 from ..back.helpers import FREQ_VWAP
+from ..back import exchanges
 
 
 def dropdown(title, id, values, default=None):
@@ -24,10 +25,13 @@ def dropdown(title, id, values, default=None):
         )
 
 
-def menu(k):
+def menu(exchange):
     return html.Div(
         children=[
-            dropdown("Crypto", "filtro-crypto", k.get_asset_pairs_symbols(), "XBTUSDT"),
+            dropdown("Exchanges", "filtro-exchange", list(exchanges.keys())),
+            dropdown("Crypto", "filtro-crypto",
+                     exchange.get_asset_pairs_symbols(),
+                     exchange.default_trade),
             html.Div(
                 children=[
                     html.Div(children="Type", className="menu-title"),

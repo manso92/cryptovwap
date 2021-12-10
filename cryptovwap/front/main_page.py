@@ -1,15 +1,15 @@
 from .head import *
 from .menu import *
+from ..back.helpers import dt_datetime_unix, dt_unix_datetime, dt_str_datetime
+from ..back import Kraken, Bitvavo
 
-from ..back.helpers import *
 import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Output, Input, State
-from ..back import Kraken
 
 from datetime import timedelta as td
-
+from datetime import datetime as dt
 import pandas as pd
 
 
@@ -34,7 +34,7 @@ external_stylesheets = [
 app = dash.Dash("cryptovwap", external_stylesheets=external_stylesheets)
 app.title = "Crypto VWAP"
 server = app.server
-k = Kraken()
+k = Bitvavo()
 
 app.layout = html.Div(
     children=[
@@ -65,7 +65,8 @@ def generate_interval(fecha):
 
 
 def hist_data(df, symbol, fecha):
-    return df[(df["time"].between(fecha, fecha + 24*3600)) & (df["symbol"] == symbol)].sort_values(["time"])
+    return df[(df["time"].between(fecha, fecha + 24*3600)) &
+              (df["symbol"] == symbol)].sort_values(["time"])
 
 
 @app.callback(
@@ -73,6 +74,7 @@ def hist_data(df, symbol, fecha):
     Output('hdata-value', 'data'),
     Output('queries-value', 'data'),
     [
+        State("filtro-exchange", "value"),
         Input("filtro-crypto", "value"),
         Input('filtro-date', "date"),
         Input('filtro-vwap', "value"),
@@ -81,20 +83,24 @@ def hist_data(df, symbol, fecha):
 
     ],
 )
-def update_charts(symbol, fecha, fvwap, hdata, queries):
+def update_charts(exchange, symbol, fecha, fvwap, hdata, queries):
     hdata = None if hdata is None else pd.read_json(hdata, orient='split')
     queries = [] if queries is None else queries
 
+    if exchange == "Bitvavo":
+        x = Bitvavo()
+    if exchange == "Kraken":
+        x = Kraken()
+
     start, end = generate_interval(fecha)
-    k = Kraken()
 
     if ([symbol, fecha]) in queries:
         print("Ya tenemos data")
         data = hist_data(hdata, symbol, start)
-        vwap = k.vwap(data, fvwap)
+        vwap = x.vwap(data, fvwap)
     else:
-        data = k.get_data(symbol, start, end)
-        vwap = k.vwap(data, fvwap)
+        data = x.get_data(symbol, start, end)
+        vwap = x.vwap(data, fvwap)
         hdata = pd.concat([data, hdata])
         queries.append([symbol, fecha])
 
@@ -127,4 +133,24 @@ def update_charts(symbol, fecha, fvwap, hdata, queries):
         },
     }
 
-    return price_chart_figure, hdata.to_json(date_format='iso', orient='split'), queries
+    return (price_chart_figure,
+            hdata.to_json(date_format='iso', orient='split'),
+            queries)
+
+
+@app.callback(
+    Output("filtro-crypto", "options"),
+    Output("filtro-crypto", "value"),
+    [
+        Input("filtro-exchange", "value"),
+
+    ],
+)
+def update_cryptos(exchange):
+    if exchange == "Bitvavo":
+        x = Bitvavo()
+    if exchange == "Kraken":
+        x = Kraken()
+    return ([{"label": x, "value": x}
+            for x in x.get_asset_pairs_symbols()],
+            x.default_trade)

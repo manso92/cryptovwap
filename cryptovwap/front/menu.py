@@ -30,6 +30,17 @@ def dropdown(id, values, default=None):
     )
 
 
+def datepicker(id, min, max):
+    return dcc.DatePickerSingle(
+        id=id,
+        min_date_allowed=min,
+        max_date_allowed=max,
+        initial_visible_month=max,
+        date=max,
+        display_format='YYYY-MM-DD'
+    )
+
+
 def menu(exchange):
     return html.Div(
         children=[
@@ -47,14 +58,7 @@ def menu(exchange):
             ),
             menu_element(
                 "Date",
-                dcc.DatePickerSingle(
-                    id='filtro-date',
-                    min_date_allowed=date(2020, 1, 1),
-                    max_date_allowed=date.today(),
-                    initial_visible_month=date.today(),
-                    date=date.today(),
-                    display_format='YYYY-MM-DD'
-                ),
+                datepicker('filtro-date', date(2020, 1, 1), date.today()),
             ),
             menu_element(
                 "VWAP",

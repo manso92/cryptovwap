@@ -1,7 +1,7 @@
 from dash import dcc
 from dash import html
 from datetime import date
-from ..back.helpers import FREQ_VWAP
+from ..back.helpers import FREQ_VWAP, VWAP_DEFAULT, CANDLES_DEFAULT
 from ..back import exchanges
 
 
@@ -58,11 +58,11 @@ def menu(exchange):
             ),
             menu_element(
                 "VWAP",
-                dropdown("filtro-vwap", FREQ_VWAP.keys())
+                dropdown("filtro-vwap", FREQ_VWAP.keys(), VWAP_DEFAULT)
             ),
             menu_element(
                 "Candle",
-                dropdown("filtro-candle", FREQ_VWAP.keys())
+                dropdown("filtro-candle", FREQ_VWAP.keys(), CANDLES_DEFAULT)
             ),
 
         ],

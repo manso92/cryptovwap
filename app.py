@@ -1,4 +1,4 @@
-from cryptovwap.front.main_page import app
+from cryptovwap.front.main_page import app, server
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ from dash import dcc
 from dash import html
 from datetime import date
 from ..back.helpers import FREQ_VWAP, VWAP_DEFAULT, CANDLES_DEFAULT
-from ..back import exchanges
+from ..back import EXCHANGES
 
 
 def menu_element(title, element):
@@ -46,7 +46,7 @@ def menu(exchange):
         children=[
             menu_element(
                 "Exchanges",
-                dropdown("filtro-exchange", list(exchanges.keys()))
+                dropdown("filtro-exchange", list(EXCHANGES.keys()))
             ),
             menu_element(
                 "Crypto",

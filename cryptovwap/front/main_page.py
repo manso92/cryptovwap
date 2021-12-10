@@ -4,8 +4,8 @@ from .menu import menu
 from .body import body
 from .graph import generate_graph
 
-from ..back.helpers import dt_datetime_unix, dt_unix_datetime, dt_str_datetime
-from ..back import Kraken, Bitvavo
+from ..back.helpers import dt_datetime_unix, dt_str_datetime
+from ..back import EXCHANGES, DEFAULT_EXCHANGE
 
 import dash
 from dash import dcc
@@ -19,12 +19,11 @@ import pandas as pd
 
 app = dash.Dash("cryptovwap", external_stylesheets=external_stylesheets)
 app.title = "Crypto VWAP"
-k = Bitvavo()
 
 app.layout = html.Div(
     children=[
         head(),
-        menu(k),
+        menu(DEFAULT_EXCHANGE),
         body(),
         dcc.Store(id='hdata-value'),
         dcc.Store(id='queries-value')
@@ -63,10 +62,7 @@ def update_charts(exchange, symbol, fecha, fvwap, fcandle, hdata, queries):
     hdata = None if hdata is None else pd.read_json(hdata, orient='split')
     queries = [] if queries is None else queries
 
-    if exchange == "Bitvavo":
-        x = Bitvavo()
-    if exchange == "Kraken":
-        x = Kraken()
+    x = EXCHANGES.get(exchange)
 
     start, end = generate_interval(fecha)
 
@@ -96,10 +92,7 @@ def update_charts(exchange, symbol, fecha, fvwap, fcandle, hdata, queries):
     ],
 )
 def update_cryptos(exchange):
-    if exchange == "Bitvavo":
-        x = Bitvavo()
-    if exchange == "Kraken":
-        x = Kraken()
+    x = EXCHANGES.get(exchange)
     return ([{"label": x, "value": x}
             for x in x.get_asset_pairs_symbols()],
             x.default_trade)

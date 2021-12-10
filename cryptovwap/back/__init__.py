@@ -10,4 +10,6 @@ def generate_echanges(exchanges_list):
     return exchanges
 
 
-exchanges = generate_echanges([Kraken, Bitvavo])
+EXCHANGES = generate_echanges([Kraken, Bitvavo, ])
+
+DEFAULT_EXCHANGE = Kraken()
